@@ -1,8 +1,32 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "src",
+  "sourceRoot": "apps/travelasia.kr-api/src",
   "compilerOptions": {
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/travelasia.kr-api/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/travelasia.kr-api",
+  "projects": {
+    "travelasia.kr": {
+      "type": "application",
+      "root": "apps/travelasia.kr-api",
+      "entryFile": "main",
+      "sourceRoot": "apps/travelasia.kr-api/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/travelasia.kr-api/tsconfig.app.json"
+      }
+    },
+    "travelasia.kr-batch": {
+      "type": "application",
+      "root": "apps/travelasia.kr-batch",
+      "entryFile": "main",
+      "sourceRoot": "apps/travelasia.kr-batch/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/travelasia.kr-batch/tsconfig.app.json"
+      }
+    }
   }
 }
