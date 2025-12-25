@@ -1,15 +1,16 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsOptional } from 'class-validator';
+import { IsNotEmpty, IsEnum } from 'class-validator';
 import { BookingStatus } from '../../enums/booking.enum';
 
 @InputType()
 export class BookingUpdate {
-  @IsOptional()
-  @Field(() => String, { nullable: true })
-  status?: BookingStatus;
+  @IsNotEmpty()
+  @Field(() => String)
+  _id: string;
 
-  @IsOptional()
-  @Field(() => Number, { nullable: true })
-  totalPrice?: number;
+  @IsNotEmpty()
+  @IsEnum(BookingStatus)
+  @Field(() => String)
+  status: BookingStatus;
 }
 
