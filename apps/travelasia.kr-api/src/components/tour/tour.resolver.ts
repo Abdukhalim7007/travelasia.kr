@@ -18,6 +18,11 @@ export class TourResolver {
     return this.tourService.getTours();
   }
 
+  @Query(() => TourDTO)
+  async tour(@Args('tourId') tourId: string): Promise<TourDTO> {
+    return this.tourService.getTourById(tourId);
+  }
+
   @Query(() => [TourDTO])
   async agentTours(@Args('agentId') agentId: string): Promise<TourDTO[]> {
     return this.tourService.getToursByAgent(agentId);

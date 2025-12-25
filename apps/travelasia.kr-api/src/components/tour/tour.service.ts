@@ -15,6 +15,12 @@ export class TourService {
     return this.tourModel.find().lean().exec();
   }
 
+  async getTourById(tourId: string): Promise<any> {
+    const tour = await this.tourModel.findById(tourId).lean().exec();
+    if (!tour) throw new NotFoundException('Tour not found');
+    return tour;
+  }
+
   async getToursByAgent(agentId: string): Promise<any[]> {
     return this.tourModel.find({ agentId }).lean().exec();
   }
