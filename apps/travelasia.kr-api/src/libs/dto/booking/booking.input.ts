@@ -1,14 +1,16 @@
-import { Field, InputType } from '@nestjs/graphql';
-import { IsNotEmpty, IsOptional } from 'class-validator';
+import { Field, InputType, Int } from '@nestjs/graphql';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 @InputType()
 export class BookingInput {
   @IsNotEmpty()
+  @IsString()
   @Field(() => String)
   tourId: string;
 
-  @IsOptional()
-  @Field(() => Number, { nullable: true })
-  numberOfGuests?: number;
+  @IsNotEmpty()
+  @IsNumber()
+  @Field(() => Number)
+  numberOfGuests: number;
 }
 
