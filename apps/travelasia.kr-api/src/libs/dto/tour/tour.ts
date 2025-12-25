@@ -20,5 +20,8 @@ export class Tour {
 
   @Field(() => Date, { nullable: true })
   createdAt?: Date;
+
+  @Field(() => String, { nullable: true })
+  agentId?: string;
 }
 

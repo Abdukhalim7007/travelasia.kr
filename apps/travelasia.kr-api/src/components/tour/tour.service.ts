@@ -12,5 +12,9 @@ export class TourService {
   async getTours(): Promise<any[]> {
     return this.tourModel.find().lean().exec();
   }
+
+  async getToursByAgent(agentId: string): Promise<any[]> {
+    return this.tourModel.find({ agentId }).lean().exec();
+  }
 }
 

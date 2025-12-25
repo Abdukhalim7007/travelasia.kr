@@ -1,4 +1,4 @@
-import { Resolver, Query } from '@nestjs/graphql';
+import { Resolver, Query, Args } from '@nestjs/graphql';
 import { Tour as TourDTO } from '../../libs/dto/tour/tour';
 import { TourService } from './tour.service';
 
@@ -9,5 +9,10 @@ export class TourResolver {
   @Query(() => [TourDTO])
   async tours(): Promise<TourDTO[]> {
     return this.tourService.getTours();
+  }
+
+  @Query(() => [TourDTO])
+  async agentTours(@Args('agentId') agentId: string): Promise<TourDTO[]> {
+    return this.tourService.getToursByAgent(agentId);
   }
 }
