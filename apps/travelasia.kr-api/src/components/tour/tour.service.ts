@@ -38,5 +38,13 @@ export class TourService {
     }
     return tour;
   }
+
+  async removeTour(agentId: string, tourId: string): Promise<boolean> {
+    const result = await this.tourModel.deleteOne({ _id: tourId, agentId }).exec();
+    if (result.deletedCount === 0) {
+      throw new NotFoundException('Tour not found or access denied');
+    }
+    return true;
+  }
 }
 

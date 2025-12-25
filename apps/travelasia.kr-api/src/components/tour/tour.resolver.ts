@@ -42,4 +42,14 @@ export class TourResolver {
   ): Promise<TourDTO> {
     return this.tourService.updateTour(agentId, input);
   }
+
+  @Roles(MemberType.AGENT)
+  @UseGuards(RolesGuard)
+  @Mutation(() => Boolean)
+  async removeTour(
+    @Args('tourId') tourId: string,
+    @AuthMember('_id') agentId: string,
+  ): Promise<boolean> {
+    return this.tourService.removeTour(agentId, tourId);
+  }
 }
