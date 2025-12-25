@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { Booking } from '../../schemas/Booking.model';
 import { Tour } from '../../schemas/Tour.model';
 import { BookingInput } from '../../libs/dto/booking/booking.input';
+import { BookingUpdate } from '../../libs/dto/booking/booking.update';
 import { BookingStatus } from '../../libs/enums/booking.enum';
 
 @Injectable()
@@ -18,11 +19,19 @@ export class BookingService {
   }
 
   async getBookingsByUser(userId: string): Promise<any[]> {
-    return this.bookingModel.find({ userId }).sort({ createdAt: -1 }).lean().exec();
+    return this.bookingModel
+      .find({ userId })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
   }
 
   async getBookingsByAgent(agentId: string): Promise<any[]> {
-    return this.bookingModel.find({ agentId }).sort({ createdAt: -1 }).lean().exec();
+    return this.bookingModel
+      .find({ agentId })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
   }
 
   async createBooking(userId: string, input: BookingInput): Promise<any> {
@@ -39,5 +48,30 @@ export class BookingService {
       totalPrice,
       status: BookingStatus.PENDING,
     });
+  }
+
+  async cancelBooking(userId: string, bookingId: string): Promise<any> {
+    const booking = await this.bookingModel
+      .findOneAndUpdate(
+        { _id: bookingId, userId, status: BookingStatus.PENDING },
+        { $set: { status: BookingStatus.CANCELLED } },
+        { new: true, lean: true },
+      )
+      .exec();
+
+    if (!booking)
+      throw new NotFoundException('Booking not found or not cancellable');
+    return booking;
+  }
+
+  async updateBookingStatus(agentId: string, input: BookingUpdate): Promise<any> {
+    const booking = await this.bookingModel.findOneAndUpdate(
+      { _id: input._id, agentId },
+      { $set: { status: input.status } },
+      { new: true, lean: true }
+    ).exec();
+
+    if (!booking) throw new NotFoundException('Booking not found or access denied');
+    return booking;
   }
 }

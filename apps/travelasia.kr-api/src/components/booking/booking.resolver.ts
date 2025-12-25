@@ -3,6 +3,7 @@ import { UseGuards } from '@nestjs/common';
 import { Booking as BookingDTO } from '../../libs/dto/booking/booking';
 import { BookingService } from './booking.service';
 import { BookingInput } from '../../libs/dto/booking/booking.input';
+import { BookingUpdate } from '../../libs/dto/booking/booking.update';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
@@ -27,7 +28,9 @@ export class BookingResolver {
   @Roles(MemberType.AGENT)
   @UseGuards(RolesGuard)
   @Query(() => [BookingDTO])
-  async agentBookings(@AuthMember('_id') agentId: string): Promise<BookingDTO[]> {
+  async agentBookings(
+    @AuthMember('_id') agentId: string,
+  ): Promise<BookingDTO[]> {
     return this.bookingService.getBookingsByAgent(agentId);
   }
 
@@ -38,5 +41,24 @@ export class BookingResolver {
     @AuthMember('_id') userId: string,
   ): Promise<BookingDTO> {
     return this.bookingService.createBooking(userId, input);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => BookingDTO)
+  async cancelBooking(
+    @Args('bookingId') bookingId: string,
+    @AuthMember('_id') userId: string,
+  ): Promise<BookingDTO> {
+    return this.bookingService.cancelBooking(userId, bookingId);
+  }
+
+  @Roles(MemberType.AGENT)
+  @UseGuards(RolesGuard)
+  @Mutation(() => BookingDTO)
+  async agentUpdateBooking(
+    @Args('input') input: BookingUpdate,
+    @AuthMember('_id') agentId: string,
+  ): Promise<BookingDTO> {
+    return this.bookingService.updateBookingStatus(agentId, input);
   }
 }
