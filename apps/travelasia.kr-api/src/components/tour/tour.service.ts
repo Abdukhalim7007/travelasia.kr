@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Tour } from '../../schemas/Tour.model';
 import { TourInput } from '../../libs/dto/tour/tour.input';
+import { TourUpdate } from '../../libs/dto/tour/tour.update';
 
 @Injectable()
 export class TourService {
@@ -21,6 +22,21 @@ export class TourService {
   async createTour(agentId: string, input: TourInput): Promise<any> {
     const created = await this.tourModel.create({ ...input, agentId });
     return created.toObject ? created.toObject() : created;
+  }
+
+  async updateTour(agentId: string, input: TourUpdate): Promise<any> {
+    const { _id, ...updates } = input;
+
+    const tour = await this.tourModel.findOneAndUpdate(
+      { _id, agentId },
+      { $set: updates },
+      { new: true, lean: true }
+    ).exec();
+
+    if (!tour) {
+      throw new NotFoundException('Tour not found or access denied');
+    }
+    return tour;
   }
 }
 

@@ -3,6 +3,7 @@ import { UseGuards } from '@nestjs/common';
 import { Tour as TourDTO } from '../../libs/dto/tour/tour';
 import { TourService } from './tour.service';
 import { TourInput } from '../../libs/dto/tour/tour.input';
+import { TourUpdate } from '../../libs/dto/tour/tour.update';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
@@ -30,5 +31,15 @@ export class TourResolver {
     @AuthMember('_id') agentId: string,
   ): Promise<TourDTO> {
     return this.tourService.createTour(agentId, input);
+  }
+
+  @Roles(MemberType.AGENT)
+  @UseGuards(RolesGuard)
+  @Mutation(() => TourDTO)
+  async updateTour(
+    @Args('input') input: TourUpdate,
+    @AuthMember('_id') agentId: string,
+  ): Promise<TourDTO> {
+    return this.tourService.updateTour(agentId, input);
   }
 }
