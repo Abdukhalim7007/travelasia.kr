@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Follow } from '../../schemas/Follow.model';
@@ -26,6 +26,36 @@ export class FollowService {
       }
       throw error;
     }
+  }
+
+  async unfollowMember(myId: string, targetId: string): Promise<boolean> {
+    const res = await this.followModel.deleteOne({ followerId: myId, followingId: targetId }).exec();
+    if (res.deletedCount === 0) throw new NotFoundException('Follow relation not found');
+    return true;
+  }
+
+  async getFollowers(memberId: string): Promise<any[]> {
+    return this.followModel
+      .find({ followingId: memberId })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+  }
+
+  async getFollowing(memberId: string): Promise<any[]> {
+    return this.followModel
+      .find({ followerId: memberId })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+  }
+
+  async countFollowers(memberId: string): Promise<number> {
+    return this.followModel.countDocuments({ followingId: memberId }).exec();
+  }
+
+  async countFollowing(memberId: string): Promise<number> {
+    return this.followModel.countDocuments({ followerId: memberId }).exec();
   }
 }
 
