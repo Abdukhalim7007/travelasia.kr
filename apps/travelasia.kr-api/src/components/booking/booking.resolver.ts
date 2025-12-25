@@ -61,4 +61,14 @@ export class BookingResolver {
   ): Promise<BookingDTO> {
     return this.bookingService.updateBookingStatus(agentId, input);
   }
+
+  @UseGuards(AuthGuard)
+  @Query(() => BookingDTO)
+  async booking(
+    @Args('bookingId') bookingId: string,
+    @AuthMember('_id') memberId: string,
+    @AuthMember('memberType') memberType: MemberType,
+  ): Promise<BookingDTO> {
+    return this.bookingService.getBookingByIdForMember(memberId, memberType, bookingId);
+  }
 }

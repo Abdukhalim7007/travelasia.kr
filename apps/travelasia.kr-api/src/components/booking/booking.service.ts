@@ -6,6 +6,7 @@ import { Tour } from '../../schemas/Tour.model';
 import { BookingInput } from '../../libs/dto/booking/booking.input';
 import { BookingUpdate } from '../../libs/dto/booking/booking.update';
 import { BookingStatus } from '../../libs/enums/booking.enum';
+import { MemberType } from '../../libs/enums/member.enum';
 
 @Injectable()
 export class BookingService {
@@ -71,6 +72,21 @@ export class BookingService {
       { new: true, lean: true }
     ).exec();
 
+    if (!booking) throw new NotFoundException('Booking not found or access denied');
+    return booking;
+  }
+
+  async getBookingByIdForMember(
+    memberId: string,
+    memberType: MemberType,
+    bookingId: string,
+  ): Promise<any> {
+    const filter =
+      memberType === MemberType.AGENT
+        ? { _id: bookingId, agentId: memberId }
+        : { _id: bookingId, userId: memberId };
+
+    const booking = await this.bookingModel.findOne(filter).lean().exec();
     if (!booking) throw new NotFoundException('Booking not found or access denied');
     return booking;
   }
