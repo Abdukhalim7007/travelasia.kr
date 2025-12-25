@@ -1,36 +1,38 @@
-import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { GqlExecutionContext } from '@nestjs/graphql';
-import { MemberType } from '../../../libs/enums/member.enum';
+import { AuthService } from '../auth.service';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private authService: AuthService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<MemberType[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+  async canActivate(context: ExecutionContext | any): Promise<boolean> {
+    const roles = this.reflector.get<string[]>('roles', context.getHandler());
+    if (!roles) return true;
 
-    if (!requiredRoles) {
+    console.info(`--- @guard() Authentication [RolesGuard]: ${roles} ---`);
+
+    if (context.contextType === 'graphql') {
+      const request = context.getArgByIndex(2).req;
+      const bearerToken = request.headers.authorization;
+      if (!bearerToken) throw new BadRequestException('Bearer Token is not provided!');
+
+      const token = bearerToken.split(' ')[1];
+      const authMember = await this.authService.verifyToken(token);
+      const hasRole = () => roles.indexOf(authMember.memberType) > -1;
+      const hasPermission: boolean = hasRole();
+
+      if (!authMember || !hasPermission) throw new ForbiddenException('Allowed only for members with specific roles!');
+
+      console.log('memberNick[roles] =>', authMember.email || authMember.fullName || 'authorized');
+      request.body.authMember = authMember;
       return true;
     }
-
-    const ctx = GqlExecutionContext.create(context);
-    const authMember = ctx.getContext().req.body?.authMember || ctx.getContext().req.authMember;
-
-    if (!authMember) {
-      throw new ForbiddenException('Authentication required');
-    }
-
-    const memberType = authMember.memberType;
-    if (!requiredRoles.includes(memberType)) {
-      throw new ForbiddenException('Insufficient permissions');
-    }
-
     return true;
+    // description => http, rpc, gprs and etc are ignored
   }
 }
-

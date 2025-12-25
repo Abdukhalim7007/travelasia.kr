@@ -1,37 +1,29 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { GqlExecutionContext } from '@nestjs/graphql';
+import { BadRequestException, CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../auth.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private authService: AuthService) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const ctx = GqlExecutionContext.create(context);
-    const req = ctx.getContext().req;
+  async canActivate(context: ExecutionContext | any): Promise<boolean> {
+    console.info('--- @guard() Authentication [AuthGuard] ---');
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Authorization header missing or invalid');
-    }
+    if (context.contextType === 'graphql') {
+      const request = context.getArgByIndex(2).req;
 
-    const token = authHeader.substring(7);
-    try {
-      const payload = await this.authService.verifyToken(token);
-      req.authMember = payload;
-      req.body.authMember = payload;
+      const bearerToken = request.headers.authorization;
+      if (!bearerToken) throw new BadRequestException('Bearer Token is not provided!');
+
+      const token = bearerToken.split(' ')[1];
+      const authMember = await this.authService.verifyToken(token);
+      if (!authMember) throw new UnauthorizedException('You are not authenticated, Please login first!');
+
+      console.log('memberNick[auth] =>', authMember.email || authMember.fullName || 'authenticated');
+      request.body.authMember = authMember;
+
       return true;
-    } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
     }
+    return true;
+    // description => http, rpc, gprs and etc are ignored
   }
 }
-
-
-
-
