@@ -7,6 +7,18 @@ export class Booking {
   _id: string;
 
   @Field(() => String, { nullable: true })
+  tourId?: string;
+
+  @Field(() => String, { nullable: true })
+  userId?: string;
+
+  @Field(() => String, { nullable: true })
+  agentId?: string;
+
+  @Field(() => Number, { nullable: true })
+  numberOfGuests?: number;
+
+  @Field(() => String, { nullable: true })
   status?: BookingStatus;
 
   @Field(() => Number, { nullable: true })
