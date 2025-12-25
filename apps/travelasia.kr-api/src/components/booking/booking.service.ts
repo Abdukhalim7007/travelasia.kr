@@ -17,6 +17,14 @@ export class BookingService {
     return this.bookingModel.find().lean().exec();
   }
 
+  async getBookingsByUser(userId: string): Promise<any[]> {
+    return this.bookingModel.find({ userId }).sort({ createdAt: -1 }).lean().exec();
+  }
+
+  async getBookingsByAgent(agentId: string): Promise<any[]> {
+    return this.bookingModel.find({ agentId }).sort({ createdAt: -1 }).lean().exec();
+  }
+
   async createBooking(userId: string, input: BookingInput): Promise<any> {
     const tour = await this.tourModel.findById(input.tourId).lean().exec();
     if (!tour) throw new NotFoundException('Tour not found');
