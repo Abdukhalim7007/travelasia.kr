@@ -31,4 +31,9 @@ export class MemberResolver {
   async members(): Promise<MemberDTO[]> {
     return this.memberService.getMembers();
   }
+
+  @Query(() => [MemberDTO])
+  async agents(): Promise<MemberDTO[]> {
+    return this.memberService.getAgents();
+  }
 }
