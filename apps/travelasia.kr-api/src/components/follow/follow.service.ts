@@ -7,11 +7,13 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Follow } from '../../schemas/Follow.model';
+import { Member } from '../../schemas/Member.model';
 
 @Injectable()
 export class FollowService {
   constructor(
     @InjectModel(Follow.name) private readonly followModel: Model<Follow>,
+    @InjectModel(Member.name) private readonly memberModel: Model<Member>,
   ) {}
 
   async followMember(myId: string, targetId: string): Promise<any> {
@@ -71,5 +73,39 @@ export class FollowService {
       .exists({ followerId: myId, followingId: targetId })
       .exec();
     return !!exists;
+  }
+
+  async getFollowersMembers(memberId: string): Promise<any[]> {
+    const follows = await this.followModel
+      .find({ followingId: memberId })
+      .select('followerId')
+      .lean()
+      .exec();
+
+    const followerIds = follows.map((f: any) => f.followerId);
+    if (followerIds.length === 0) return [];
+
+    return this.memberModel
+      .find({ _id: { $in: followerIds } })
+      .select('_id email fullName memberType')
+      .lean()
+      .exec();
+  }
+
+  async getFollowingMembers(memberId: string): Promise<any[]> {
+    const follows = await this.followModel
+      .find({ followerId: memberId })
+      .select('followingId')
+      .lean()
+      .exec();
+
+    const followingIds = follows.map((f: any) => f.followingId);
+    if (followingIds.length === 0) return [];
+
+    return this.memberModel
+      .find({ _id: { $in: followingIds } })
+      .select('_id email fullName memberType')
+      .lean()
+      .exec();
   }
 }
