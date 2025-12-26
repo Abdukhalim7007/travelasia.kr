@@ -71,4 +71,13 @@ export class FollowResolver {
   async myFollowingCount(@AuthMember('_id') myId: string): Promise<number> {
     return this.followService.countFollowing(myId);
   }
+
+  @UseGuards(AuthGuard)
+  @Query(() => Boolean)
+  async lookupAuthMemberFollowed(
+    @Args('targetId') targetId: string,
+    @AuthMember('_id') myId: string,
+  ): Promise<boolean> {
+    return this.followService.isFollowed(myId, targetId);
+  }
 }

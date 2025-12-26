@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Follow } from '../../schemas/Follow.model';
@@ -15,11 +20,11 @@ export class FollowService {
     }
 
     try {
-      const follow = await this.followModel.create({
+      const created = await this.followModel.create({
         followerId: myId,
         followingId: targetId,
       });
-      return follow.toObject ? follow.toObject() : follow;
+      return created;
     } catch (error) {
       if (error.code === 11000) {
         throw new ConflictException('Already following this member');
@@ -29,8 +34,11 @@ export class FollowService {
   }
 
   async unfollowMember(myId: string, targetId: string): Promise<boolean> {
-    const res = await this.followModel.deleteOne({ followerId: myId, followingId: targetId }).exec();
-    if (res.deletedCount === 0) throw new NotFoundException('Follow relation not found');
+    const res = await this.followModel
+      .deleteOne({ followerId: myId, followingId: targetId })
+      .exec();
+    if (res.deletedCount === 0)
+      throw new NotFoundException('Follow relation not found');
     return true;
   }
 
@@ -57,5 +65,11 @@ export class FollowService {
   async countFollowing(memberId: string): Promise<number> {
     return this.followModel.countDocuments({ followerId: memberId }).exec();
   }
-}
 
+  async isFollowed(myId: string, targetId: string): Promise<boolean> {
+    const exists = await this.followModel
+      .exists({ followerId: myId, followingId: targetId })
+      .exec();
+    return !!exists;
+  }
+}
