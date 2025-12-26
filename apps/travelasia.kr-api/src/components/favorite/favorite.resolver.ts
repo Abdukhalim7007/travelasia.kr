@@ -5,6 +5,7 @@ import { FavoriteDTO } from '../../libs/dto/favorite/favorite';
 import { FavoriteInput } from '../../libs/dto/favorite/favorite.input';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
+import { Tour as TourDTO } from '../../libs/dto/tour/tour';
 
 @Resolver()
 export class FavoriteResolver {
@@ -32,6 +33,12 @@ export class FavoriteResolver {
   @Query(() => [FavoriteDTO])
   async myFavorites(@AuthMember('_id') memberId: string): Promise<FavoriteDTO[]> {
     return this.favoriteService.getMyFavorites(memberId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => [TourDTO])
+  async myFavoriteTours(@AuthMember('_id') memberId: string): Promise<TourDTO[]> {
+    return this.favoriteService.getMyFavoriteTours(memberId);
   }
 
   @UseGuards(AuthGuard)
