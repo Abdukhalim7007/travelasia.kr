@@ -5,13 +5,30 @@ import { TourModule } from './tour/tour.module';
 import { BookingModule } from './booking/booking.module';
 import { FollowModule } from './follow/follow.module';
 import { LikeModule } from './like/like.module';
+import { FavoriteModule } from './favorite/favorite.module';
 
 // Feature modules (Auth/Member/Tour/Booking/Follow/Payment) will be added incrementally
 // Only import/export modules when their *.module.ts files exist
 
 @Module({
-  imports: [AuthModule, MemberModule, TourModule, BookingModule, FollowModule, LikeModule],
-  exports: [AuthModule, MemberModule, TourModule, BookingModule, FollowModule, LikeModule],
+  imports: [
+    AuthModule,
+    MemberModule,
+    TourModule,
+    BookingModule,
+    FollowModule,
+    LikeModule,
+    FavoriteModule,
+  ],
+  exports: [
+    AuthModule,
+    MemberModule,
+    TourModule,
+    BookingModule,
+    FollowModule,
+    LikeModule,
+    FavoriteModule,
+  ],
 })
 export class ComponentsModule {}
 
