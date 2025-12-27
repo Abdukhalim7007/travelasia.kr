@@ -1,5 +1,9 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { BookingStatus } from '../../enums/booking.enum';
+
+registerEnumType(BookingStatus, {
+  name: 'BookingStatus',
+});
 
 @ObjectType()
 export class Booking {
@@ -18,7 +22,7 @@ export class Booking {
   @Field(() => Number, { nullable: true })
   numberOfGuests?: number;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => BookingStatus, { nullable: true })
   status?: BookingStatus;
 
   @Field(() => Number, { nullable: true })

@@ -11,8 +11,8 @@ import { Member, MemberSchema } from '../../schemas/Member.model';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'your-secret-key-change-in-production',
-        signOptions: { expiresIn: '7d' },
+        secret: configService.get<string>('jwt.accessSecret'),
+        signOptions: { expiresIn: configService.get<string>('jwt.accessExp') },
       }),
       inject: [ConfigService],
     }),

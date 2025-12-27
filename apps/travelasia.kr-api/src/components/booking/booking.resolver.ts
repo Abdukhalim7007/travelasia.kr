@@ -101,7 +101,7 @@ export class BookingResolver {
   @Mutation(() => BookingDTO)
   async updateBookingStatusByAdmin(
     @Args('bookingId') bookingId: string,
-    @Args('status') status: BookingStatus,
+    @Args('status', { type: () => BookingStatus }) status: BookingStatus,
   ): Promise<BookingDTO> {
     return this.bookingService.updateBookingStatusByAdmin(bookingId, status);
   }

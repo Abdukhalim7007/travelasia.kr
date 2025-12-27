@@ -9,7 +9,7 @@ import { Connection } from 'mongoose';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI') || 'mongodb://localhost:27017/travelasia',
+        uri: configService.get<string>('db.uri'),
       }),
       inject: [ConfigService],
     }),
