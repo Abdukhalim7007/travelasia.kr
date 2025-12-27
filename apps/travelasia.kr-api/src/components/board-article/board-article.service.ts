@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BoardArticle, BoardArticleStatus } from '../../schemas/BoardArticle.model';
@@ -51,6 +51,19 @@ export class BoardArticleService {
       .exec();
 
     return { list: list as any, total };
+  }
+
+  async getArticle(articleId: string): Promise<any> {
+    const article = await this.boardArticleModel
+      .findOneAndUpdate(
+        { _id: articleId, status: BoardArticleStatus.ACTIVE },
+        { $inc: { viewsCount: 1 } },
+        { new: true, lean: true },
+      )
+      .exec();
+
+    if (!article) throw new NotFoundException('Article not found');
+    return article;
   }
 }
 

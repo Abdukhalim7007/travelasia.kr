@@ -22,6 +22,11 @@ export class BoardArticleResolver {
     return this.boardArticleService.getArticles(input ?? ({} as any));
   }
 
+  @Query(() => BoardArticleDTO)
+  async getArticle(@Args('articleId') articleId: string): Promise<BoardArticleDTO> {
+    return this.boardArticleService.getArticle(articleId);
+  }
+
   @Roles(MemberType.ADMIN, MemberType.AGENT)
   @UseGuards(AuthGuard, RolesGuard)
   @Mutation(() => BoardArticleDTO)
