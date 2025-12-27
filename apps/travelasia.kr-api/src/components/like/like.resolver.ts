@@ -24,7 +24,8 @@ export class LikeResolver {
   @Mutation(() => Boolean)
   async unlike(
     @Args('targetId') targetId: string,
-    @Args('targetType', { type: () => LikeTargetType }) targetType: LikeTargetType,
+    @Args('targetType', { type: () => LikeTargetType })
+    targetType: LikeTargetType,
     @AuthMember('_id') memberId: string,
   ): Promise<boolean> {
     return this.likeService.unlike(memberId, targetId, targetType);
@@ -34,7 +35,8 @@ export class LikeResolver {
   @Query(() => Boolean)
   async lookupAuthMemberLiked(
     @Args('targetId') targetId: string,
-    @Args('targetType', { type: () => LikeTargetType }) targetType: LikeTargetType,
+    @Args('targetType', { type: () => LikeTargetType })
+    targetType: LikeTargetType,
     @AuthMember('_id') memberId: string,
   ): Promise<boolean> {
     return this.likeService.isLiked(memberId, targetId, targetType);
