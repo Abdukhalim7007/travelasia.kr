@@ -2,6 +2,8 @@ import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { CommentDTO } from '../../libs/dto/comment/comment';
 import { CreateCommentInput, UpdateReviewInput } from '../../libs/dto/comment/comment.input';
+import { CommentsInquiry } from '../../libs/dto/comment/comments.inquiry';
+import { CommentsResponse } from '../../libs/dto/comment/comments.response';
 import { CommentService } from './comment.service';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -22,9 +24,12 @@ export class CommentResolver {
     return this.commentService.createReview(memberId, input);
   }
 
-  @Query(() => [CommentDTO])
-  async getReviewsByTour(@Args('tourId') tourId: string): Promise<CommentDTO[]> {
-    return this.commentService.getReviewsByTour(tourId);
+  @Query(() => CommentsResponse)
+  async getReviewsByTour(
+    @Args('tourId') tourId: string,
+    @Args('input', { nullable: true }) input?: CommentsInquiry,
+  ): Promise<CommentsResponse> {
+    return this.commentService.getReviewsByTour(tourId, input);
   }
 
   @UseGuards(AuthGuard)

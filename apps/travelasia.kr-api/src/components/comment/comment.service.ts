@@ -4,6 +4,8 @@ import { Model, Types } from 'mongoose';
 import { Comment, CommentStatus } from '../../schemas/Comment.model';
 import { Tour } from '../../schemas/Tour.model';
 import { CreateCommentInput, UpdateReviewInput } from '../../libs/dto/comment/comment.input';
+import { CommentsInquiry } from '../../libs/dto/comment/comments.inquiry';
+import { CommentsResponse } from '../../libs/dto/comment/comments.response';
 import { MemberType } from '../../libs/enums/member.enum';
 
 @Injectable()
@@ -27,12 +29,29 @@ export class CommentService {
     });
   }
 
-  async getReviewsByTour(tourId: string): Promise<any[]> {
-    return this.commentModel
-      .find({ tourId, status: CommentStatus.ACTIVE })
-      .sort({ createdAt: -1 })
+  async getReviewsByTour(tourId: string, input?: CommentsInquiry): Promise<CommentsResponse> {
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      direction = -1,
+    } = input || {};
+
+    const filter: any = {
+      tourId: new Types.ObjectId(tourId),
+      status: CommentStatus.ACTIVE,
+    };
+
+    const total = await this.commentModel.countDocuments(filter).exec();
+    const list = await this.commentModel
+      .find(filter)
+      .sort({ [sort]: direction as any })
+      .skip((page - 1) * limit)
+      .limit(limit)
       .lean()
       .exec();
+
+    return { list: list as any, total };
   }
 
   async countReviews(tourId: string): Promise<number> {
