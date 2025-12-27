@@ -108,4 +108,28 @@ export class FollowService {
       .lean()
       .exec();
   }
+
+  async getFollows(memberId: string, input?: any, type: 'followers' | 'following' = 'following'): Promise<{ list: any[]; total: number }> {
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      direction = -1,
+    } = input || {};
+
+    const filter: any = type === 'followers' 
+      ? { followingId: memberId }
+      : { followerId: memberId };
+
+    const total = await this.followModel.countDocuments(filter).exec();
+    const list = await this.followModel
+      .find(filter)
+      .sort({ [sort]: direction as any })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return { list, total };
+  }
 }

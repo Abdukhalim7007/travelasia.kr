@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Like } from '../../schemas/Like.model';
 import { LikeInput } from '../../libs/dto/like/like.input';
 import { LikeTargetType } from '../../libs/enums/like.enum';
@@ -41,5 +41,66 @@ export class LikeService {
     targetType: LikeTargetType = LikeTargetType.TOUR,
   ): Promise<number> {
     return this.likeModel.countDocuments({ targetId, targetType }).exec();
+  }
+
+  async getCountsByTargetIds(
+    targetIds: (string | Types.ObjectId)[],
+    targetType: LikeTargetType,
+  ): Promise<Map<string, number>> {
+    if (!targetIds || targetIds.length === 0) {
+      return new Map();
+    }
+
+    const objectIds = targetIds.map((id) => (typeof id === 'string' ? new Types.ObjectId(id) : id));
+
+    const result = await this.likeModel.aggregate([
+      { $match: { targetId: { $in: objectIds }, targetType } },
+      { $group: { _id: '$targetId', count: { $sum: 1 } } },
+    ]).exec();
+
+    const countsMap = new Map<string, number>();
+    result.forEach((item) => {
+      const targetIdStr = String(item._id);
+      countsMap.set(targetIdStr, item.count);
+    });
+
+    // Ensure all targetIds have entries (default to 0 if no likes)
+    targetIds.forEach((id) => {
+      const idStr = String(id);
+      if (!countsMap.has(idStr)) {
+        countsMap.set(idStr, 0);
+      }
+    });
+
+    return countsMap;
+  }
+
+  async getMeLikedMap(
+    memberId: string,
+    targetIds: (string | Types.ObjectId)[],
+    targetType: LikeTargetType,
+  ): Promise<Map<string, boolean>> {
+    if (!targetIds || targetIds.length === 0 || !memberId) {
+      return new Map();
+    }
+
+    const objectIds = targetIds.map((id) => (typeof id === 'string' ? new Types.ObjectId(id) : id));
+
+    const likes = await this.likeModel
+      .find({ memberId, targetId: { $in: objectIds }, targetType })
+      .select('targetId')
+      .lean()
+      .exec();
+
+    const likedMap = new Map<string, boolean>();
+    targetIds.forEach((id) => {
+      likedMap.set(String(id), false);
+    });
+
+    likes.forEach((like: any) => {
+      likedMap.set(String(like.targetId), true);
+    });
+
+    return likedMap;
   }
 }

@@ -9,12 +9,17 @@ import { ToursResponse } from '../../libs/dto/tour/tours.response';
 import { createWriteStream, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { CommentService } from '../comment/comment.service';
+import { LikeService } from '../like/like.service';
+import { VisitedService } from '../visited/visited.service';
+import { LikeTargetType } from '../../libs/enums/like.enum';
 
 @Injectable()
 export class TourService {
   constructor(
     @InjectModel(Tour.name) private readonly tourModel: Model<Tour>,
     private readonly commentService: CommentService,
+    private readonly likeService: LikeService,
+    private readonly visitedService: VisitedService,
   ) {}
 
   async getTours(input: ToursInquiry): Promise<ToursResponse> {
@@ -59,15 +64,22 @@ export class TourService {
       .lean()
       .exec();
 
-    // Batch load review stats
+    // Batch load stats
     if (list.length > 0) {
       const tourIds = list.map((tour) => tour._id);
-      const statsMap = await this.commentService.getReviewStatsByTourIds(tourIds);
+      const [statsMap, likesMap, viewsMap] = await Promise.all([
+        this.commentService.getReviewStatsByTourIds(tourIds),
+        this.likeService.getCountsByTargetIds(tourIds, LikeTargetType.TOUR),
+        this.visitedService.getViewsCountsByTourIds(tourIds),
+      ]);
+
       list.forEach((tour: any) => {
         const tourIdStr = String(tour._id);
         const stats = statsMap.get(tourIdStr) || { count: 0, avg: 0 };
         tour.reviewsCount = stats.count;
         tour.averageRating = stats.avg;
+        tour.likesCount = likesMap.get(tourIdStr) || 0;
+        tour.viewsCount = viewsMap.get(tourIdStr) || 0;
       });
     }
 
@@ -77,15 +89,22 @@ export class TourService {
   async getAllTours(): Promise<any[]> {
     const list = await this.tourModel.find().lean().exec();
 
-    // Batch load review stats
+    // Batch load stats
     if (list.length > 0) {
       const tourIds = list.map((tour) => tour._id);
-      const statsMap = await this.commentService.getReviewStatsByTourIds(tourIds);
+      const [statsMap, likesMap, viewsMap] = await Promise.all([
+        this.commentService.getReviewStatsByTourIds(tourIds),
+        this.likeService.getCountsByTargetIds(tourIds, LikeTargetType.TOUR),
+        this.visitedService.getViewsCountsByTourIds(tourIds),
+      ]);
+
       list.forEach((tour: any) => {
         const tourIdStr = String(tour._id);
         const stats = statsMap.get(tourIdStr) || { count: 0, avg: 0 };
         tour.reviewsCount = stats.count;
         tour.averageRating = stats.avg;
+        tour.likesCount = likesMap.get(tourIdStr) || 0;
+        tour.viewsCount = viewsMap.get(tourIdStr) || 0;
       });
     }
 
@@ -96,12 +115,19 @@ export class TourService {
     const tour = await this.tourModel.findById(tourId).lean().exec();
     if (!tour) throw new NotFoundException('Tour not found');
 
-    // Batch load review stats (single tour)
-    const statsMap = await this.commentService.getReviewStatsByTourIds([tourId]);
+    // Batch load stats (single tour)
     const tourIdStr = String(tour._id);
+    const [statsMap, likesMap, viewsMap] = await Promise.all([
+      this.commentService.getReviewStatsByTourIds([tourId]),
+      this.likeService.getCountsByTargetIds([tourId], LikeTargetType.TOUR),
+      this.visitedService.getViewsCountsByTourIds([tourId]),
+    ]);
+
     const stats = statsMap.get(tourIdStr) || { count: 0, avg: 0 };
     (tour as any).reviewsCount = stats.count;
     (tour as any).averageRating = stats.avg;
+    (tour as any).likesCount = likesMap.get(tourIdStr) || 0;
+    (tour as any).viewsCount = viewsMap.get(tourIdStr) || 0;
 
     return tour;
   }
@@ -109,15 +135,22 @@ export class TourService {
   async getToursByAgent(agentId: string): Promise<any[]> {
     const list = await this.tourModel.find({ agentId }).lean().exec();
 
-    // Batch load review stats
+    // Batch load stats
     if (list.length > 0) {
       const tourIds = list.map((tour) => tour._id);
-      const statsMap = await this.commentService.getReviewStatsByTourIds(tourIds);
+      const [statsMap, likesMap, viewsMap] = await Promise.all([
+        this.commentService.getReviewStatsByTourIds(tourIds),
+        this.likeService.getCountsByTargetIds(tourIds, LikeTargetType.TOUR),
+        this.visitedService.getViewsCountsByTourIds(tourIds),
+      ]);
+
       list.forEach((tour: any) => {
         const tourIdStr = String(tour._id);
         const stats = statsMap.get(tourIdStr) || { count: 0, avg: 0 };
         tour.reviewsCount = stats.count;
         tour.averageRating = stats.avg;
+        tour.likesCount = likesMap.get(tourIdStr) || 0;
+        tour.viewsCount = viewsMap.get(tourIdStr) || 0;
       });
     }
 
@@ -185,15 +218,22 @@ export class TourService {
   async getAllToursByAdmin(): Promise<any[]> {
     const list = await this.tourModel.find().sort({ createdAt: -1 }).lean().exec();
 
-    // Batch load review stats
+    // Batch load stats
     if (list.length > 0) {
       const tourIds = list.map((tour) => tour._id);
-      const statsMap = await this.commentService.getReviewStatsByTourIds(tourIds);
+      const [statsMap, likesMap, viewsMap] = await Promise.all([
+        this.commentService.getReviewStatsByTourIds(tourIds),
+        this.likeService.getCountsByTargetIds(tourIds, LikeTargetType.TOUR),
+        this.visitedService.getViewsCountsByTourIds(tourIds),
+      ]);
+
       list.forEach((tour: any) => {
         const tourIdStr = String(tour._id);
         const stats = statsMap.get(tourIdStr) || { count: 0, avg: 0 };
         tour.reviewsCount = stats.count;
         tour.averageRating = stats.avg;
+        tour.likesCount = likesMap.get(tourIdStr) || 0;
+        tour.viewsCount = viewsMap.get(tourIdStr) || 0;
       });
     }
 

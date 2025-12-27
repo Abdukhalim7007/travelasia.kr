@@ -3,6 +3,8 @@ import { UseGuards } from '@nestjs/common';
 import { FollowService } from './follow.service';
 import { Follow as FollowDTO } from '../../libs/dto/follow/follow';
 import { FollowInput } from '../../libs/dto/follow/follow.input';
+import { FollowsInquiry } from '../../libs/dto/follow/follows.inquiry';
+import { FollowsResponse } from '../../libs/dto/follow/follows.response';
 import { Member as MemberDTO } from '../../libs/dto/member/member';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
@@ -37,14 +39,32 @@ export class FollowResolver {
 
   @UseGuards(AuthGuard)
   @Query(() => [FollowDTO])
-  async myFollowers(@AuthMember('_id') myId: string): Promise<FollowDTO[]> {
+  async myFollowersLegacy(@AuthMember('_id') myId: string): Promise<FollowDTO[]> {
     return this.followService.getFollowers(myId);
   }
 
   @UseGuards(AuthGuard)
+  @Query(() => FollowsResponse)
+  async myFollowers(
+    @AuthMember('_id') myId: string,
+    @Args('input', { nullable: true }) input?: FollowsInquiry,
+  ): Promise<FollowsResponse> {
+    return this.followService.getFollows(myId, input, 'followers');
+  }
+
+  @UseGuards(AuthGuard)
   @Query(() => [FollowDTO])
-  async myFollowing(@AuthMember('_id') myId: string): Promise<FollowDTO[]> {
+  async myFollowingLegacy(@AuthMember('_id') myId: string): Promise<FollowDTO[]> {
     return this.followService.getFollowing(myId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => FollowsResponse)
+  async myFollowing(
+    @AuthMember('_id') myId: string,
+    @Args('input', { nullable: true }) input?: FollowsInquiry,
+  ): Promise<FollowsResponse> {
+    return this.followService.getFollows(myId, input, 'following');
   }
 
   @UseGuards(AuthGuard)

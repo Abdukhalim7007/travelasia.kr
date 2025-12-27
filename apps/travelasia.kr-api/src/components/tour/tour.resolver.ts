@@ -104,12 +104,14 @@ export class TourResolver {
 
   @ResolveField(() => Number, { nullable: true })
   async likesCount(@Parent() tour: TourDTO): Promise<number> {
-    return this.likeService.countLikes(String(tour._id), LikeTargetType.TOUR);
+    // Stats are already attached by TourService batch loading
+    return (tour as any).likesCount ?? 0;
   }
 
   @ResolveField(() => Number, { nullable: true })
   async viewsCount(@Parent() tour: TourDTO): Promise<number> {
-    return this.visitedService.countViews(String(tour._id));
+    // Stats are already attached by TourService batch loading
+    return (tour as any).viewsCount ?? 0;
   }
 
   @ResolveField(() => Boolean, { nullable: true })

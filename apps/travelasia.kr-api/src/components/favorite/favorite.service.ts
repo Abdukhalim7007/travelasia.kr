@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Favorite } from '../../schemas/Favorite.model';
 import { Tour } from '../../schemas/Tour.model';
 
@@ -36,6 +36,28 @@ export class FavoriteService {
     return await this.favoriteModel.find({ memberId }).sort({ createdAt: -1 }).lean().exec();
   }
 
+  async getFavorites(memberId: string, input?: any): Promise<{ list: any[]; total: number }> {
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      direction = -1,
+    } = input || {};
+
+    const filter: any = { memberId };
+
+    const total = await this.favoriteModel.countDocuments(filter).exec();
+    const list = await this.favoriteModel
+      .find(filter)
+      .sort({ [sort]: direction as any })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return { list, total };
+  }
+
   async getMyFavoriteTours(memberId: string): Promise<any[]> {
     const favorites = await this.favoriteModel
       .find({ memberId })
@@ -59,6 +81,34 @@ export class FavoriteService {
   async isFavorited(memberId: string, tourId: string): Promise<boolean> {
     const exists = await this.favoriteModel.exists({ memberId, tourId });
     return !!exists;
+  }
+
+  async getFavoritedMap(
+    memberId: string,
+    tourIds: (string | Types.ObjectId)[],
+  ): Promise<Map<string, boolean>> {
+    if (!tourIds || tourIds.length === 0 || !memberId) {
+      return new Map();
+    }
+
+    const objectIds = tourIds.map((id) => (typeof id === 'string' ? new Types.ObjectId(id) : id));
+
+    const favorites = await this.favoriteModel
+      .find({ memberId, tourId: { $in: objectIds } })
+      .select('tourId')
+      .lean()
+      .exec();
+
+    const favoritedMap = new Map<string, boolean>();
+    tourIds.forEach((id) => {
+      favoritedMap.set(String(id), false);
+    });
+
+    favorites.forEach((fav: any) => {
+      favoritedMap.set(String(fav.tourId), true);
+    });
+
+    return favoritedMap;
   }
 }
 
