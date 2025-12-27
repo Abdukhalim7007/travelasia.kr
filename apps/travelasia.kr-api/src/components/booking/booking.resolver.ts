@@ -9,14 +9,21 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
+import { BookingsInquiry } from '../../libs/dto/booking/bookings.inquiry';
+import { BookingsResponse } from '../../libs/dto/booking/bookings.response';
 
 @Resolver()
 export class BookingResolver {
   constructor(private readonly bookingService: BookingService) {}
 
+  @Query(() => BookingsResponse)
+  async bookings(@Args('input') input: BookingsInquiry): Promise<BookingsResponse> {
+    return this.bookingService.getBookings(input);
+  }
+
   @Query(() => [BookingDTO])
-  async bookings(): Promise<BookingDTO[]> {
-    return this.bookingService.getBookings();
+  async bookingsLegacy(): Promise<BookingDTO[]> {
+    return this.bookingService.getBookingsLegacy();
   }
 
   @UseGuards(AuthGuard)

@@ -10,6 +10,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
 import { MemberUpdate } from '../../libs/dto/member/member.update';
+import { MembersInquiry } from '../../libs/dto/member/members.inquiry';
+import { MembersResponse } from '../../libs/dto/member/members.response';
 
 @Resolver()
 export class MemberResolver {
@@ -33,9 +35,14 @@ export class MemberResolver {
     return authMember?.email ?? 'GUEST';
   }
 
+  @Query(() => MembersResponse)
+  async members(@Args('input', { nullable: true }) input: MembersInquiry): Promise<MembersResponse> {
+    return this.memberService.getMembers(input ?? ({} as any));
+  }
+
   @Query(() => [MemberDTO])
-  async members(): Promise<MemberDTO[]> {
-    return this.memberService.getMembers();
+  async membersLegacy(): Promise<MemberDTO[]> {
+    return this.memberService.getMembersLegacy();
   }
 
   @Query(() => [MemberDTO])

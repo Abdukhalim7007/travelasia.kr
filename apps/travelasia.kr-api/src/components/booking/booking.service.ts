@@ -7,6 +7,8 @@ import { BookingInput } from '../../libs/dto/booking/booking.input';
 import { BookingUpdate } from '../../libs/dto/booking/booking.update';
 import { BookingStatus } from '../../libs/enums/booking.enum';
 import { MemberType } from '../../libs/enums/member.enum';
+import { BookingsInquiry } from '../../libs/dto/booking/bookings.inquiry';
+import { BookingsResponse } from '../../libs/dto/booking/bookings.response';
 
 @Injectable()
 export class BookingService {
@@ -15,7 +17,33 @@ export class BookingService {
     @InjectModel(Tour.name) private readonly tourModel: Model<Tour>,
   ) {}
 
-  async getBookings(): Promise<any[]> {
+  async getBookings(input: BookingsInquiry): Promise<BookingsResponse> {
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      direction = -1,
+      search,
+    } = input;
+
+    const filter: any = {};
+    if (search) {
+      filter.notes = { $regex: search, $options: 'i' };
+    }
+
+    const total = await this.bookingModel.countDocuments(filter).exec();
+    const list = await this.bookingModel
+      .find(filter)
+      .sort({ [sort]: direction as any })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return { list: list as any, total };
+  }
+
+  async getBookingsLegacy(): Promise<any[]> {
     return this.bookingModel.find().lean().exec();
   }
 

@@ -5,6 +5,8 @@ import { Member } from '../../schemas/Member.model';
 import { MemberType } from '../../libs/enums/member.enum';
 import { createWriteStream, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
+import { MembersInquiry } from '../../libs/dto/member/members.inquiry';
+import { MembersResponse } from '../../libs/dto/member/members.response';
 
 @Injectable()
 export class MemberService {
@@ -12,7 +14,36 @@ export class MemberService {
     @InjectModel(Member.name) private readonly memberModel: Model<Member>,
   ) {}
 
-  async getMembers(): Promise<any[]> {
+  async getMembers(input: MembersInquiry): Promise<MembersResponse> {
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      direction = -1,
+      search,
+    } = input;
+
+    const filter: any = {};
+    if (search) {
+      filter.$or = [
+        { email: { $regex: search, $options: 'i' } },
+        { fullName: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const total = await this.memberModel.countDocuments(filter).exec();
+    const list = await this.memberModel
+      .find(filter)
+      .sort({ [sort]: direction as any })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return { list: list as any, total };
+  }
+
+  async getMembersLegacy(): Promise<any[]> {
     return this.memberModel.find().lean().exec();
   }
 
