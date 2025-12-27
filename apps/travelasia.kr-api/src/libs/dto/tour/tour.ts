@@ -24,6 +24,9 @@ export class Tour {
   @Field(() => String, { nullable: true })
   agentId?: string;
 
+  @Field(() => [String], { nullable: true })
+  images?: string[];
+
   @Field(() => Number, { nullable: true })
   likesCount?: number;
 

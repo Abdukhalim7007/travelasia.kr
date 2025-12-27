@@ -14,5 +14,8 @@ export class Member {
 
   @Field(() => String, { nullable: true })
   memberType?: MemberType;
+
+  @Field(() => String, { nullable: true })
+  avatar?: string;
 }
 
