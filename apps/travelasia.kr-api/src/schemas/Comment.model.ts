@@ -1,6 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
+export enum CommentStatus {
+  ACTIVE = 'ACTIVE',
+  BLOCKED = 'BLOCKED',
+  DELETED = 'DELETED',
+}
+
 @Schema({ timestamps: true })
 export class Comment extends Document {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Tour', required: true })
@@ -14,9 +20,13 @@ export class Comment extends Document {
 
   @Prop({ required: true })
   content: string;
+
+  @Prop({ type: String, enum: CommentStatus, default: CommentStatus.ACTIVE })
+  status: CommentStatus;
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);
 CommentSchema.index({ tourId: 1, createdAt: -1 });
 CommentSchema.index({ memberId: 1 });
 CommentSchema.index({ tourId: 1, memberId: 1 }, { unique: true });
+CommentSchema.index({ status: 1, createdAt: -1 });
