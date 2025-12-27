@@ -28,23 +28,30 @@ export class TourResolver {
   ) {}
 
   @Query(() => ToursResponse)
-  async getTours(@Args('input', { nullable: true }) input: ToursInquiry): Promise<ToursResponse> {
-    return this.tourService.getTours(input ?? ({} as any));
+  async getTours(
+    @Args('input', { nullable: true }) input: ToursInquiry,
+    @Context() ctx: any,
+  ): Promise<ToursResponse> {
+    const memberId = ctx?.req?.user?._id || ctx?.req?.member?._id;
+    return this.tourService.getTours(input ?? ({} as any), memberId);
   }
 
   @Query(() => [TourDTO])
-  async tours(): Promise<TourDTO[]> {
-    return this.tourService.getAllTours();
+  async tours(@Context() ctx: any): Promise<TourDTO[]> {
+    const memberId = ctx?.req?.user?._id || ctx?.req?.member?._id;
+    return this.tourService.getAllTours(memberId);
   }
 
   @Query(() => TourDTO)
-  async tour(@Args('tourId') tourId: string): Promise<TourDTO> {
-    return this.tourService.getTourById(tourId);
+  async tour(@Args('tourId') tourId: string, @Context() ctx: any): Promise<TourDTO> {
+    const memberId = ctx?.req?.user?._id || ctx?.req?.member?._id;
+    return this.tourService.getTourById(tourId, memberId);
   }
 
   @Query(() => [TourDTO])
-  async agentTours(@Args('agentId') agentId: string): Promise<TourDTO[]> {
-    return this.tourService.getToursByAgent(agentId);
+  async agentTours(@Args('agentId') agentId: string, @Context() ctx: any): Promise<TourDTO[]> {
+    const memberId = ctx?.req?.user?._id || ctx?.req?.member?._id;
+    return this.tourService.getToursByAgent(agentId, memberId);
   }
 
   @Roles(MemberType.AGENT)
@@ -91,8 +98,9 @@ export class TourResolver {
   @Roles(MemberType.ADMIN)
   @UseGuards(RolesGuard)
   @Query(() => [TourDTO])
-  async getAllToursByAdmin(): Promise<TourDTO[]> {
-    return this.tourService.getAllToursByAdmin();
+  async getAllToursByAdmin(@Context() ctx: any): Promise<TourDTO[]> {
+    const memberId = ctx?.req?.user?._id || ctx?.req?.member?._id;
+    return this.tourService.getAllToursByAdmin(memberId);
   }
 
   @Roles(MemberType.ADMIN)
@@ -116,6 +124,11 @@ export class TourResolver {
 
   @ResolveField(() => Boolean, { nullable: true })
   async meLiked(@Parent() tour: TourDTO, @Context() ctx: any): Promise<boolean> {
+    // Stats are already attached by TourService batch loading
+    if ((tour as any).meLiked !== undefined) {
+      return (tour as any).meLiked;
+    }
+    // Fallback to old logic if not attached (minimal risk)
     const memberId = ctx?.req?.user?._id || ctx?.req?.member?._id;
     if (memberId) {
       return this.likeService.isLiked(memberId, String(tour._id), LikeTargetType.TOUR);
@@ -125,6 +138,11 @@ export class TourResolver {
 
   @ResolveField(() => Boolean, { nullable: true })
   async meFavorited(@Parent() tour: TourDTO, @Context() ctx: any): Promise<boolean> {
+    // Stats are already attached by TourService batch loading
+    if ((tour as any).meFavorited !== undefined) {
+      return (tour as any).meFavorited;
+    }
+    // Fallback to old logic if not attached (minimal risk)
     const memberId = ctx?.req?.user?._id || ctx?.req?.member?._id;
     if (memberId) {
       return this.favoriteService.isFavorited(memberId, String(tour._id));
