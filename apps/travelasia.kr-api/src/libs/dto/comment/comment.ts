@@ -23,4 +23,3 @@ export class CommentDTO {
   @Field(() => Date)
   updatedAt: Date;
 }
-

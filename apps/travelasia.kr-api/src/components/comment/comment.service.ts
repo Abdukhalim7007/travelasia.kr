@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { Comment } from '../../schemas/Comment.model';
 import { Tour } from '../../schemas/Tour.model';
 import { CreateCommentInput } from '../../libs/dto/comment/comment.input';
@@ -16,19 +16,13 @@ export class CommentService {
     const tour = await this.tourModel.findById(input.tourId).exec();
     if (!tour) throw new NotFoundException('Tour not found');
 
-    const existingComment = await this.commentModel
-      .findOne({ tourId: input.tourId, memberId })
-      .exec();
-    if (existingComment) throw new ConflictException('You have already reviewed this tour');
+    const existing = await this.commentModel.findOne({ tourId: input.tourId, memberId }).exec();
+    if (existing) throw new ConflictException('You have already reviewed this tour');
 
-    const created = await this.commentModel.create({
-      tourId: input.tourId,
+    return this.commentModel.create({
+      ...input,
       memberId,
-      rating: input.rating,
-      content: input.content,
     });
-
-    return created;
   }
 
   async getReviewsByTour(tourId: string): Promise<any[]> {
@@ -41,11 +35,10 @@ export class CommentService {
 
   async getAverageRating(tourId: string): Promise<number> {
     const result = await this.commentModel.aggregate([
-      { $match: { tourId: new Types.ObjectId(tourId) } },
+      { $match: { tourId: tourId } },
       { $group: { _id: '$tourId', averageRating: { $avg: '$rating' } } },
-    ]);
+    ]).exec();
 
     return result.length > 0 ? result[0].averageRating : 0;
   }
 }
-

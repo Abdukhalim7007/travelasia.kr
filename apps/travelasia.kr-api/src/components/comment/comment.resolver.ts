@@ -1,8 +1,8 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
-import { CommentService } from './comment.service';
 import { CommentDTO } from '../../libs/dto/comment/comment';
 import { CreateCommentInput } from '../../libs/dto/comment/comment.input';
+import { CommentService } from './comment.service';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 
@@ -24,4 +24,3 @@ export class CommentResolver {
     return this.commentService.getReviewsByTour(tourId);
   }
 }
-
