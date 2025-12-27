@@ -7,6 +7,7 @@ import { AuthModule } from '../auth/auth.module';
 import { LikeModule } from '../like/like.module';
 import { FavoriteModule } from '../favorite/favorite.module';
 import { VisitedModule } from '../visited/visited.module';
+import { CommentModule } from '../comment/comment.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { VisitedModule } from '../visited/visited.module';
     LikeModule,
     FavoriteModule,
     VisitedModule,
+    CommentModule,
   ],
   providers: [TourResolver, TourService],
   exports: [TourService],

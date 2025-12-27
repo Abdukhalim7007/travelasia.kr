@@ -38,5 +38,11 @@ export class Tour {
 
   @Field(() => Boolean, { nullable: true })
   meFavorited?: boolean;
+
+  @Field(() => Number, { nullable: true })
+  reviewsCount?: number;
+
+  @Field(() => Number, { nullable: true })
+  averageRating?: number;
 }
 

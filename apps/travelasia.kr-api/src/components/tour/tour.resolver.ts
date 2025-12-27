@@ -15,6 +15,7 @@ import { FavoriteService } from '../favorite/favorite.service';
 import { VisitedService } from '../visited/visited.service';
 import { LikeTargetType } from '../../libs/enums/like.enum';
 import { GraphQLUpload, FileUpload } from 'graphql-upload';
+import { CommentService } from '../comment/comment.service';
 
 @Resolver(() => TourDTO)
 export class TourResolver {
@@ -23,6 +24,7 @@ export class TourResolver {
     private readonly likeService: LikeService,
     private readonly favoriteService: FavoriteService,
     private readonly visitedService: VisitedService,
+    private readonly commentService: CommentService,
   ) {}
 
   @Query(() => ToursResponse)
@@ -126,5 +128,15 @@ export class TourResolver {
       return this.favoriteService.isFavorited(memberId, String(tour._id));
     }
     return false;
+  }
+
+  @ResolveField(() => Number, { nullable: true })
+  async reviewsCount(@Parent() tour: TourDTO): Promise<number> {
+    return this.commentService.countReviews(String(tour._id));
+  }
+
+  @ResolveField(() => Number, { nullable: true })
+  async averageRating(@Parent() tour: TourDTO): Promise<number> {
+    return this.commentService.getAverageRating(String(tour._id));
   }
 }
