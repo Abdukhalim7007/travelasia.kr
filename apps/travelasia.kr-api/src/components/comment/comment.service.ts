@@ -1,9 +1,10 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Comment, CommentStatus } from '../../schemas/Comment.model';
 import { Tour } from '../../schemas/Tour.model';
-import { CreateCommentInput } from '../../libs/dto/comment/comment.input';
+import { CreateCommentInput, UpdateReviewInput } from '../../libs/dto/comment/comment.input';
+import { MemberType } from '../../libs/enums/member.enum';
 
 @Injectable()
 export class CommentService {
@@ -83,5 +84,49 @@ export class CommentService {
     });
 
     return statsMap;
+  }
+
+  async updateReview(memberId: string, reviewId: string, input: UpdateReviewInput): Promise<any> {
+    const review = await this.commentModel
+      .findOne({ _id: reviewId, status: { $ne: CommentStatus.DELETED } })
+      .lean()
+      .exec();
+
+    if (!review) throw new NotFoundException('Review not found');
+
+    // Permission check: only owner can update
+    if (String(review.memberId) !== memberId) {
+      throw new ForbiddenException('You do not have permission to update this review');
+    }
+
+    const updateData: any = {};
+    if (input.rating !== undefined) updateData.rating = input.rating;
+    if (input.content !== undefined) updateData.content = input.content;
+
+    const updated = await this.commentModel
+      .findByIdAndUpdate(reviewId, { $set: updateData }, { new: true, lean: true })
+      .exec();
+
+    return updated;
+  }
+
+  async removeReview(memberId: string, memberType: MemberType, reviewId: string): Promise<boolean> {
+    const review = await this.commentModel
+      .findOne({ _id: reviewId, status: { $ne: CommentStatus.DELETED } })
+      .lean()
+      .exec();
+
+    if (!review) throw new NotFoundException('Review not found');
+
+    // Permission check: ADMIN can remove any, others can only remove their own
+    if (memberType !== MemberType.ADMIN && String(review.memberId) !== memberId) {
+      throw new ForbiddenException('You do not have permission to remove this review');
+    }
+
+    await this.commentModel
+      .findByIdAndUpdate(reviewId, { $set: { status: CommentStatus.DELETED } })
+      .exec();
+
+    return true;
   }
 }
