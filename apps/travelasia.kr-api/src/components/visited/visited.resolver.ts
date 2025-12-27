@@ -23,4 +23,9 @@ export class VisitedResolver {
   async myVisitedTours(@AuthMember('_id') memberId: string): Promise<VisitedDTO[]> {
     return this.visitedService.getMyVisitedTours(memberId);
   }
+
+  @Query(() => Number)
+  async viewsCount(@Args('tourId') tourId: string): Promise<number> {
+    return this.visitedService.countViews(tourId);
+  }
 }

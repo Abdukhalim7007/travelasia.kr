@@ -15,4 +15,8 @@ export class VisitedService {
   async getMyVisitedTours(memberId: string): Promise<any[]> {
     return this.visitedModel.find({ memberId }).sort({ visitedAt: -1 }).lean().exec();
   }
+
+  async countViews(tourId: string): Promise<number> {
+    return this.visitedModel.countDocuments({ tourId }).exec();
+  }
 }
