@@ -14,6 +14,7 @@ import { LikeService } from '../like/like.service';
 import { FavoriteService } from '../favorite/favorite.service';
 import { VisitedService } from '../visited/visited.service';
 import { LikeTargetType } from '../../libs/enums/like.enum';
+import { GraphQLUpload, FileUpload } from 'graphql-upload';
 
 @Resolver(() => TourDTO)
 export class TourResolver {
@@ -72,6 +73,17 @@ export class TourResolver {
     @AuthMember('_id') agentId: string,
   ): Promise<boolean> {
     return this.tourService.removeTour(agentId, tourId);
+  }
+
+  @Roles(MemberType.AGENT)
+  @UseGuards(RolesGuard)
+  @Mutation(() => TourDTO)
+  async uploadTourImages(
+    @Args('tourId') tourId: string,
+    @Args({ name: 'files', type: () => [GraphQLUpload] }) files: FileUpload[],
+    @AuthMember('_id') agentId: string,
+  ): Promise<TourDTO> {
+    return this.tourService.uploadTourImages(agentId, tourId, files);
   }
 
   @ResolveField(() => Number, { nullable: true })

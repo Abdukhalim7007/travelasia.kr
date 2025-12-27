@@ -6,6 +6,8 @@ import { TourInput } from '../../libs/dto/tour/tour.input';
 import { TourUpdate } from '../../libs/dto/tour/tour.update';
 import { ToursInquiry } from '../../libs/dto/tour/tours.inquiry';
 import { ToursResponse } from '../../libs/dto/tour/tours.response';
+import { createWriteStream, mkdirSync, existsSync } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class TourService {
@@ -98,6 +100,36 @@ export class TourService {
       throw new NotFoundException('Tour not found or access denied');
     }
     return true;
+  }
+
+  async uploadTourImages(agentId: string, tourId: string, files: any[]): Promise<any> {
+    const tour = await this.tourModel.findOne({ _id: tourId, agentId }).exec();
+    if (!tour) throw new NotFoundException('Tour not found or access denied');
+
+    const uploadDir = join(process.cwd(), `public/uploads/tours/${tourId}`);
+    if (!existsSync(uploadDir)) {
+      mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const paths = await Promise.all(
+      files.map(async (file) => {
+        const { createReadStream, filename } = await file;
+        const uniqueFilename = `${Date.now()}_${filename}`;
+        const filePath = join(uploadDir, uniqueFilename);
+        const savedPath = `/uploads/tours/${tourId}/${uniqueFilename}`;
+
+        return new Promise<string>((resolve, reject) => {
+          createReadStream()
+            .pipe(createWriteStream(filePath))
+            .on('finish', () => resolve(savedPath))
+            .on('error', (err: any) => reject(err));
+        });
+      }),
+    );
+
+    return this.tourModel
+      .findByIdAndUpdate(tourId, { $push: { images: { $each: paths } } }, { new: true, lean: true })
+      .exec();
   }
 }
 
