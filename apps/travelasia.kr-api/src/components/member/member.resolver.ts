@@ -1,10 +1,11 @@
-import { Resolver, Query } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { WithoutGuard } from '../auth/guards/without.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
 import { Member as MemberDTO } from '../../libs/dto/member/member';
 import { MemberService } from './member.service';
+import { GraphQLUpload, FileUpload } from 'graphql-upload';
 
 @Resolver()
 export class MemberResolver {
@@ -18,6 +19,7 @@ export class MemberResolver {
       email: authMember?.email || '',
       fullName: authMember?.fullName || null,
       memberType: authMember?.memberType || null,
+      avatar: authMember?.avatar || null,
     };
   }
 
@@ -35,5 +37,14 @@ export class MemberResolver {
   @Query(() => [MemberDTO])
   async agents(): Promise<MemberDTO[]> {
     return this.memberService.getAgents();
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => MemberDTO)
+  async updateMemberAvatar(
+    @Args({ name: 'file', type: () => GraphQLUpload }) file: FileUpload,
+    @AuthMember('_id') memberId: string,
+  ): Promise<MemberDTO> {
+    return this.memberService.updateMemberAvatar(memberId, file);
   }
 }
