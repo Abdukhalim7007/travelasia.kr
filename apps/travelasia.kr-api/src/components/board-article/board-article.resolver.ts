@@ -2,7 +2,10 @@ import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { BoardArticle as BoardArticleDTO } from '../../libs/dto/board-article/board-article';
 import { BoardArticleService } from './board-article.service';
-import { CreateBoardArticleInput, UpdateBoardArticleInput } from '../../libs/dto/board-article/board-article.input';
+import {
+  CreateBoardArticleInput,
+  UpdateBoardArticleInput,
+} from '../../libs/dto/board-article/board-article.input';
 import { BoardArticlesInquiry } from '../../libs/dto/board-article/board-articles.inquiry';
 import { BoardArticlesResponse } from '../../libs/dto/board-article/board-articles.response';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -23,7 +26,9 @@ export class BoardArticleResolver {
   }
 
   @Query(() => BoardArticleDTO)
-  async getArticle(@Args('articleId') articleId: string): Promise<BoardArticleDTO> {
+  async getArticle(
+    @Args('articleId') articleId: string,
+  ): Promise<BoardArticleDTO> {
     return this.boardArticleService.getArticle(articleId);
   }
 
@@ -46,7 +51,12 @@ export class BoardArticleResolver {
     @AuthMember('_id') memberId: string,
     @AuthMember('memberType') memberType: MemberType,
   ): Promise<BoardArticleDTO> {
-    return this.boardArticleService.updateArticle(articleId, memberId, memberType, input);
+    return this.boardArticleService.updateArticle(
+      articleId,
+      memberId,
+      memberType,
+      input,
+    );
   }
 
   @Roles(MemberType.ADMIN, MemberType.AGENT)
@@ -57,7 +67,37 @@ export class BoardArticleResolver {
     @AuthMember('_id') memberId: string,
     @AuthMember('memberType') memberType: MemberType,
   ): Promise<boolean> {
-    return this.boardArticleService.removeArticle(articleId, memberId, memberType);
+    return this.boardArticleService.removeArticle(
+      articleId,
+      memberId,
+      memberType,
+    );
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Query(() => BoardArticlesResponse)
+  async getArticlesByAdmin(
+    @Args('input', { nullable: true }) input?: BoardArticlesInquiry,
+  ): Promise<BoardArticlesResponse> {
+    return this.boardArticleService.getArticlesByAdmin(input);
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Mutation(() => BoardArticleDTO)
+  async blockArticleByAdmin(
+    @Args('articleId') articleId: string,
+  ): Promise<BoardArticleDTO> {
+    return this.boardArticleService.blockArticleByAdmin(articleId);
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Mutation(() => BoardArticleDTO)
+  async unblockArticleByAdmin(
+    @Args('articleId') articleId: string,
+  ): Promise<BoardArticleDTO> {
+    return this.boardArticleService.unblockArticleByAdmin(articleId);
   }
 }
-

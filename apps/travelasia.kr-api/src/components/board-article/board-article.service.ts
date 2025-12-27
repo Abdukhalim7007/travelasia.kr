@@ -32,7 +32,7 @@ export class BoardArticleService {
     } = input;
 
     const filter: any = {
-      status: { $ne: BoardArticleStatus.DELETED },
+      status: BoardArticleStatus.ACTIVE,
     };
 
     if (search) {
@@ -114,6 +114,69 @@ export class BoardArticleService {
       .exec();
 
     return true;
+  }
+
+  async getArticlesByAdmin(input?: BoardArticlesInquiry): Promise<BoardArticlesResponse> {
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      direction = -1,
+      search,
+      status,
+    } = input || {};
+
+    const filter: any = {
+      status: { $ne: BoardArticleStatus.DELETED },
+    };
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (search) {
+      filter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const total = await this.boardArticleModel.countDocuments(filter).exec();
+    const list = await this.boardArticleModel
+      .find(filter)
+      .sort({ [sort]: direction as any })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return { list: list as any, total };
+  }
+
+  async blockArticleByAdmin(articleId: string): Promise<any> {
+    const article = await this.boardArticleModel
+      .findOneAndUpdate(
+        { _id: articleId, status: { $ne: BoardArticleStatus.DELETED } },
+        { $set: { status: BoardArticleStatus.BLOCKED } },
+        { new: true, lean: true },
+      )
+      .exec();
+
+    if (!article) throw new NotFoundException('Article not found');
+    return article;
+  }
+
+  async unblockArticleByAdmin(articleId: string): Promise<any> {
+    const article = await this.boardArticleModel
+      .findOneAndUpdate(
+        { _id: articleId, status: { $ne: BoardArticleStatus.DELETED } },
+        { $set: { status: BoardArticleStatus.ACTIVE } },
+        { new: true, lean: true },
+      )
+      .exec();
+
+    if (!article) throw new NotFoundException('Article not found');
+    return article;
   }
 }
 
