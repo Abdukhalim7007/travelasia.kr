@@ -35,4 +35,11 @@ export class LikeService {
     const exists = await this.likeModel.exists({ memberId, targetId, targetType });
     return !!exists;
   }
+
+  async countLikes(
+    targetId: string,
+    targetType: LikeTargetType = LikeTargetType.TOUR,
+  ): Promise<number> {
+    return this.likeModel.countDocuments({ targetId, targetType }).exec();
+  }
 }

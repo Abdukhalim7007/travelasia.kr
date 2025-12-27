@@ -39,4 +39,9 @@ export class LikeResolver {
   ): Promise<boolean> {
     return this.likeService.isLiked(memberId, targetId, targetType);
   }
+
+  @Query(() => Number)
+  async likesCount(@Args('targetId') targetId: string): Promise<number> {
+    return this.likeService.countLikes(targetId, LikeTargetType.TOUR);
+  }
 }
