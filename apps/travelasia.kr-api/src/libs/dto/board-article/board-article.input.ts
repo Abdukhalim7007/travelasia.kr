@@ -12,3 +12,14 @@ export class CreateBoardArticleInput {
   content: string;
 }
 
+@InputType()
+export class UpdateBoardArticleInput {
+  @IsNotEmpty()
+  @Field(() => String)
+  title: string;
+
+  @IsNotEmpty()
+  @Field(() => String)
+  content: string;
+}
+

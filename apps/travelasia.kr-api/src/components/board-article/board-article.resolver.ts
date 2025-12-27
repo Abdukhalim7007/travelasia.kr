@@ -2,7 +2,7 @@ import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { BoardArticle as BoardArticleDTO } from '../../libs/dto/board-article/board-article';
 import { BoardArticleService } from './board-article.service';
-import { CreateBoardArticleInput } from '../../libs/dto/board-article/board-article.input';
+import { CreateBoardArticleInput, UpdateBoardArticleInput } from '../../libs/dto/board-article/board-article.input';
 import { BoardArticlesInquiry } from '../../libs/dto/board-article/board-articles.inquiry';
 import { BoardArticlesResponse } from '../../libs/dto/board-article/board-articles.response';
 import { AuthGuard } from '../auth/guards/auth.guard';
@@ -35,6 +35,29 @@ export class BoardArticleResolver {
     @AuthMember('_id') memberId: string,
   ): Promise<BoardArticleDTO> {
     return this.boardArticleService.createArticle(memberId, input);
+  }
+
+  @Roles(MemberType.ADMIN, MemberType.AGENT)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Mutation(() => BoardArticleDTO)
+  async updateArticle(
+    @Args('articleId') articleId: string,
+    @Args('input') input: UpdateBoardArticleInput,
+    @AuthMember('_id') memberId: string,
+    @AuthMember('memberType') memberType: MemberType,
+  ): Promise<BoardArticleDTO> {
+    return this.boardArticleService.updateArticle(articleId, memberId, memberType, input);
+  }
+
+  @Roles(MemberType.ADMIN, MemberType.AGENT)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Mutation(() => Boolean)
+  async removeArticle(
+    @Args('articleId') articleId: string,
+    @AuthMember('_id') memberId: string,
+    @AuthMember('memberType') memberType: MemberType,
+  ): Promise<boolean> {
+    return this.boardArticleService.removeArticle(articleId, memberId, memberType);
   }
 }
 
