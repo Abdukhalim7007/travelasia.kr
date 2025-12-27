@@ -8,6 +8,7 @@ import { LikeModule } from './like/like.module';
 import { FavoriteModule } from './favorite/favorite.module';
 import { VisitedModule } from './visited/visited.module';
 import { CommentModule } from './comment/comment.module';
+import { BoardArticleModule } from './board-article/board-article.module';
 
 // Feature modules (Auth/Member/Tour/Booking/Follow/Payment) will be added incrementally
 // Only import/export modules when their *.module.ts files exist
@@ -23,6 +24,7 @@ import { CommentModule } from './comment/comment.module';
     FavoriteModule,
     VisitedModule,
     CommentModule,
+    BoardArticleModule,
   ],
   exports: [
     AuthModule,
@@ -34,6 +36,7 @@ import { CommentModule } from './comment/comment.module';
     FavoriteModule,
     VisitedModule,
     CommentModule,
+    BoardArticleModule,
   ],
 })
 export class ComponentsModule {}
