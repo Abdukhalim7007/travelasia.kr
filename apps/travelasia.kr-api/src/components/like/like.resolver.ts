@@ -3,6 +3,8 @@ import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { LikeService } from './like.service';
 import { LikeDTO } from '../../libs/dto/like/like';
 import { LikeInput } from '../../libs/dto/like/like.input';
+import { LikesInquiry } from '../../libs/dto/like/likes.inquiry';
+import { LikesResponse } from '../../libs/dto/like/likes.response';
 import { LikeTargetType } from '../../libs/enums/like.enum';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
@@ -45,5 +47,14 @@ export class LikeResolver {
   @Query(() => Number)
   async likesCount(@Args('targetId') targetId: string): Promise<number> {
     return this.likeService.countLikes(targetId, LikeTargetType.TOUR);
+  }
+
+  @UseGuards(AuthGuard)
+  @Query(() => LikesResponse)
+  async myLikes(
+    @AuthMember('_id') memberId: string,
+    @Args('input', { nullable: true }) input?: LikesInquiry,
+  ): Promise<LikesResponse> {
+    return this.likeService.getMyLikes(memberId, input);
   }
 }

@@ -8,6 +8,8 @@ export enum TourStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
   ARCHIVED = 'ARCHIVED',
+  BLOCKED = 'BLOCKED',
+  DELETED = 'DELETED',
 }
 
 export enum TourGroupType {

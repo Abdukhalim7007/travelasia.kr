@@ -13,6 +13,7 @@ import { LikeService } from '../like/like.service';
 import { VisitedService } from '../visited/visited.service';
 import { FavoriteService } from '../favorite/favorite.service';
 import { LikeTargetType } from '../../libs/enums/like.enum';
+import { TourStatus } from '../../libs/enums/tour.enum';
 
 @Injectable()
 export class TourService {
@@ -37,7 +38,9 @@ export class TourService {
       maxPrice,
     } = input;
 
-    const filter: any = {};
+    const filter: any = {
+      status: TourStatus.ACTIVE,
+    };
 
     if (search) {
       filter.title = { $regex: search, $options: 'i' };

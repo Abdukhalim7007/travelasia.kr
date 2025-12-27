@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Member } from '../../schemas/Member.model';
-import { MemberType } from '../../libs/enums/member.enum';
+import { MemberType, MemberStatus } from '../../libs/enums/member.enum';
 import { createWriteStream, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { MembersInquiry } from '../../libs/dto/member/members.inquiry';
@@ -23,7 +23,9 @@ export class MemberService {
       search,
     } = input;
 
-    const filter: any = {};
+    const filter: any = {
+      status: { $ne: MemberStatus.DELETED },
+    };
     if (search) {
       filter.$or = [
         { email: { $regex: search, $options: 'i' } },
@@ -48,7 +50,10 @@ export class MemberService {
   }
 
   async getAgents(): Promise<any[]> {
-    return this.memberModel.find({ memberType: MemberType.AGENT }).lean().exec();
+    return this.memberModel
+      .find({ memberType: MemberType.AGENT, status: { $ne: MemberStatus.DELETED } })
+      .lean()
+      .exec();
   }
 
   async updateMemberAvatar(memberId: string, file: any): Promise<any> {
@@ -78,7 +83,11 @@ export class MemberService {
   }
 
   async getAllMembersByAdmin(): Promise<any[]> {
-    return this.memberModel.find().sort({ createdAt: -1 }).lean().exec();
+    return this.memberModel
+      .find({ status: { $ne: MemberStatus.DELETED } })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
   }
 
   async updateMemberByAdmin(memberId: string, input: any): Promise<any> {

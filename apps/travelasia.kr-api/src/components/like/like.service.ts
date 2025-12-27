@@ -103,4 +103,28 @@ export class LikeService {
 
     return likedMap;
   }
+
+  async getMyLikes(memberId: string, input?: any): Promise<{ list: any[]; total: number }> {
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      direction = -1,
+    } = input || {};
+
+    const filter: any = {
+      memberId: new Types.ObjectId(memberId),
+    };
+
+    const total = await this.likeModel.countDocuments(filter).exec();
+    const list = await this.likeModel
+      .find(filter)
+      .sort({ [sort]: direction as any })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return { list, total };
+  }
 }
