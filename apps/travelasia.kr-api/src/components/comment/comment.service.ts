@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Comment } from '../../schemas/Comment.model';
 import { Tour } from '../../schemas/Tour.model';
 import { CreateCommentInput } from '../../libs/dto/comment/comment.input';
@@ -40,5 +40,43 @@ export class CommentService {
     ]).exec();
 
     return result.length > 0 ? result[0].averageRating : 0;
+  }
+
+  async getReviewStatsByTourIds(tourIds: (string | Types.ObjectId)[]): Promise<Map<string, { count: number; avg: number }>> {
+    if (!tourIds || tourIds.length === 0) {
+      return new Map();
+    }
+
+    const objectIds = tourIds.map((id) => (typeof id === 'string' ? new Types.ObjectId(id) : id));
+
+    const result = await this.commentModel.aggregate([
+      { $match: { tourId: { $in: objectIds } } },
+      {
+        $group: {
+          _id: '$tourId',
+          count: { $sum: 1 },
+          avg: { $avg: '$rating' },
+        },
+      },
+    ]).exec();
+
+    const statsMap = new Map<string, { count: number; avg: number }>();
+    result.forEach((item) => {
+      const tourIdStr = String(item._id);
+      statsMap.set(tourIdStr, {
+        count: item.count,
+        avg: item.avg || 0,
+      });
+    });
+
+    // Ensure all tourIds have entries (default to 0 if no reviews)
+    tourIds.forEach((id) => {
+      const idStr = String(id);
+      if (!statsMap.has(idStr)) {
+        statsMap.set(idStr, { count: 0, avg: 0 });
+      }
+    });
+
+    return statsMap;
   }
 }

@@ -132,11 +132,13 @@ export class TourResolver {
 
   @ResolveField(() => Number, { nullable: true })
   async reviewsCount(@Parent() tour: TourDTO): Promise<number> {
-    return this.commentService.countReviews(String(tour._id));
+    // Stats are already attached by TourService batch loading
+    return (tour as any).reviewsCount ?? 0;
   }
 
   @ResolveField(() => Number, { nullable: true })
   async averageRating(@Parent() tour: TourDTO): Promise<number> {
-    return this.commentService.getAverageRating(String(tour._id));
+    // Stats are already attached by TourService batch loading
+    return (tour as any).averageRating ?? 0;
   }
 }
