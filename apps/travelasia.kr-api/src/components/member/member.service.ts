@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Member } from '../../schemas/Member.model';
@@ -44,6 +44,19 @@ export class MemberService {
         })
         .on('error', (err) => reject(err));
     });
+  }
+
+  async getAllMembersByAdmin(): Promise<any[]> {
+    return this.memberModel.find().sort({ createdAt: -1 }).lean().exec();
+  }
+
+  async updateMemberByAdmin(memberId: string, input: any): Promise<any> {
+    const updated = await this.memberModel
+      .findByIdAndUpdate(memberId, input, { new: true })
+      .lean()
+      .exec();
+    if (!updated) throw new NotFoundException('Member not found');
+    return updated;
   }
 }
 

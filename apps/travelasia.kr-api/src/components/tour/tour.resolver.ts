@@ -86,6 +86,20 @@ export class TourResolver {
     return this.tourService.uploadTourImages(agentId, tourId, files);
   }
 
+  @Roles(MemberType.ADMIN)
+  @UseGuards(RolesGuard)
+  @Query(() => [TourDTO])
+  async getAllToursByAdmin(): Promise<TourDTO[]> {
+    return this.tourService.getAllToursByAdmin();
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(RolesGuard)
+  @Mutation(() => Boolean)
+  async removeTourByAdmin(@Args('tourId') tourId: string): Promise<boolean> {
+    return this.tourService.removeTourByAdmin(tourId);
+  }
+
   @ResolveField(() => Number, { nullable: true })
   async likesCount(@Parent() tour: TourDTO): Promise<number> {
     return this.likeService.countLikes(String(tour._id), LikeTargetType.TOUR);

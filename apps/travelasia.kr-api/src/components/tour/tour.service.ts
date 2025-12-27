@@ -131,5 +131,17 @@ export class TourService {
       .findByIdAndUpdate(tourId, { $push: { images: { $each: paths } } }, { new: true, lean: true })
       .exec();
   }
+
+  async getAllToursByAdmin(): Promise<any[]> {
+    return this.tourModel.find().sort({ createdAt: -1 }).lean().exec();
+  }
+
+  async removeTourByAdmin(tourId: string): Promise<boolean> {
+    const result = await this.tourModel.deleteOne({ _id: tourId }).exec();
+    if (result.deletedCount === 0) {
+      throw new NotFoundException('Tour not found');
+    }
+    return true;
+  }
 }
 
