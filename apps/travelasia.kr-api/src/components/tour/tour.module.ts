@@ -4,11 +4,17 @@ import { TourResolver } from './tour.resolver';
 import { TourService } from './tour.service';
 import { Tour, TourSchema } from '../../schemas/Tour.model';
 import { AuthModule } from '../auth/auth.module';
+import { LikeModule } from '../like/like.module';
+import { FavoriteModule } from '../favorite/favorite.module';
+import { VisitedModule } from '../visited/visited.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Tour.name, schema: TourSchema }]),
     AuthModule,
+    LikeModule,
+    FavoriteModule,
+    VisitedModule,
   ],
   providers: [TourResolver, TourService],
   exports: [TourService],

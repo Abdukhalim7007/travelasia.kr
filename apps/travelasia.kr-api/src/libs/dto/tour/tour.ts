@@ -23,5 +23,17 @@ export class Tour {
 
   @Field(() => String, { nullable: true })
   agentId?: string;
+
+  @Field(() => Number, { nullable: true })
+  likesCount?: number;
+
+  @Field(() => Number, { nullable: true })
+  viewsCount?: number;
+
+  @Field(() => Boolean, { nullable: true })
+  meLiked?: boolean;
+
+  @Field(() => Boolean, { nullable: true })
+  meFavorited?: boolean;
 }
 
