@@ -118,4 +118,56 @@ export class BookingService {
     if (!booking) throw new NotFoundException('Booking not found or access denied');
     return booking;
   }
+
+  async getAllBookingsByAdmin(input?: BookingsInquiry): Promise<BookingsResponse> {
+    const {
+      page = 1,
+      limit = 10,
+      sort = 'createdAt',
+      direction = -1,
+      search,
+    } = input || {};
+
+    const filter: any = {};
+    if (search) {
+      filter.notes = { $regex: search, $options: 'i' };
+    }
+
+    const total = await this.bookingModel.countDocuments(filter).exec();
+    const list = await this.bookingModel
+      .find(filter)
+      .sort({ [sort]: direction as any })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return { list: list as any, total };
+  }
+
+  async cancelBookingByAdmin(bookingId: string): Promise<any> {
+    const booking = await this.bookingModel
+      .findByIdAndUpdate(
+        bookingId,
+        { $set: { status: BookingStatus.CANCELLED } },
+        { new: true, lean: true },
+      )
+      .exec();
+
+    if (!booking) throw new NotFoundException('Booking not found');
+    return booking;
+  }
+
+  async updateBookingStatusByAdmin(bookingId: string, status: BookingStatus): Promise<any> {
+    const booking = await this.bookingModel
+      .findByIdAndUpdate(
+        bookingId,
+        { $set: { status } },
+        { new: true, lean: true },
+      )
+      .exec();
+
+    if (!booking) throw new NotFoundException('Booking not found');
+    return booking;
+  }
 }

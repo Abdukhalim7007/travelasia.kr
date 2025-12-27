@@ -11,6 +11,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { MemberType } from '../../libs/enums/member.enum';
 import { BookingsInquiry } from '../../libs/dto/booking/bookings.inquiry';
 import { BookingsResponse } from '../../libs/dto/booking/bookings.response';
+import { BookingStatus } from '../../libs/enums/booking.enum';
 
 @Resolver()
 export class BookingResolver {
@@ -77,5 +78,31 @@ export class BookingResolver {
     @AuthMember('memberType') memberType: MemberType,
   ): Promise<BookingDTO> {
     return this.bookingService.getBookingByIdForMember(memberId, memberType, bookingId);
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Query(() => BookingsResponse)
+  async getAllBookingsByAdmin(
+    @Args('input', { nullable: true }) input?: BookingsInquiry,
+  ): Promise<BookingsResponse> {
+    return this.bookingService.getAllBookingsByAdmin(input);
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Mutation(() => BookingDTO)
+  async cancelBookingByAdmin(@Args('bookingId') bookingId: string): Promise<BookingDTO> {
+    return this.bookingService.cancelBookingByAdmin(bookingId);
+  }
+
+  @Roles(MemberType.ADMIN)
+  @UseGuards(AuthGuard, RolesGuard)
+  @Mutation(() => BookingDTO)
+  async updateBookingStatusByAdmin(
+    @Args('bookingId') bookingId: string,
+    @Args('status') status: BookingStatus,
+  ): Promise<BookingDTO> {
+    return this.bookingService.updateBookingStatusByAdmin(bookingId, status);
   }
 }
