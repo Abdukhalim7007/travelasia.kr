@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { Tour } from '../../schemas/Tour.model';
 import { TourInput } from '../../libs/dto/tour/tour.input';
 import { TourUpdate } from '../../libs/dto/tour/tour.update';
+import { ToursInquiry } from '../../libs/dto/tour/tours.inquiry';
+import { ToursResponse } from '../../libs/dto/tour/tours.response';
 
 @Injectable()
 export class TourService {
@@ -11,7 +13,52 @@ export class TourService {
     @InjectModel(Tour.name) private readonly tourModel: Model<Tour>,
   ) {}
 
-  async getTours(): Promise<any[]> {
+  async getTours(input: ToursInquiry): Promise<ToursResponse> {
+    const {
+      page = 1,
+      limit = 12,
+      sort = 'createdAt',
+      direction = -1,
+      search,
+      location,
+      type,
+      minPrice,
+      maxPrice,
+    } = input;
+
+    const filter: any = {};
+
+    if (search) {
+      filter.title = { $regex: search, $options: 'i' };
+    }
+
+    if (location) {
+      filter.location = { $regex: location, $options: 'i' };
+    }
+
+    if (type) {
+      filter.tourType = type;
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      filter.tourPrice = {};
+      if (minPrice !== undefined) filter.tourPrice.$gte = minPrice;
+      if (maxPrice !== undefined) filter.tourPrice.$lte = maxPrice;
+    }
+
+    const total = await this.tourModel.countDocuments(filter).exec();
+    const list = await this.tourModel
+      .find(filter)
+      .sort({ [sort]: direction as any })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean()
+      .exec();
+
+    return { list: list as any, total };
+  }
+
+  async getAllTours(): Promise<any[]> {
     return this.tourModel.find().lean().exec();
   }
 

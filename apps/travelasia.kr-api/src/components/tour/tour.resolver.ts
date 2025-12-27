@@ -4,6 +4,8 @@ import { Tour as TourDTO } from '../../libs/dto/tour/tour';
 import { TourService } from './tour.service';
 import { TourInput } from '../../libs/dto/tour/tour.input';
 import { TourUpdate } from '../../libs/dto/tour/tour.update';
+import { ToursInquiry } from '../../libs/dto/tour/tours.inquiry';
+import { ToursResponse } from '../../libs/dto/tour/tours.response';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { AuthMember } from '../auth/decorators/authMember.decorator';
@@ -22,9 +24,14 @@ export class TourResolver {
     private readonly visitedService: VisitedService,
   ) {}
 
+  @Query(() => ToursResponse)
+  async getTours(@Args('input', { nullable: true }) input: ToursInquiry): Promise<ToursResponse> {
+    return this.tourService.getTours(input ?? ({} as any));
+  }
+
   @Query(() => [TourDTO])
   async tours(): Promise<TourDTO[]> {
-    return this.tourService.getTours();
+    return this.tourService.getAllTours();
   }
 
   @Query(() => TourDTO)
